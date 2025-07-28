@@ -22,6 +22,7 @@ const LoginComponent = () => {
     if (response && !response.err) {
       // console.log(response);
       const token = response.token;
+      localStorage.setItem("token", token);
       const date = new Date();
       date.setDate(date.getDate() + 30);
       setCookie("token", token, { path: "/", expires: date });

@@ -4,29 +4,58 @@ const passport = require("passport");
 const Song = require("../models/Song");
 const User = require("../models/User");
 
+// router.post(
+//   "/create",
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     try {
+//       console.log("Request body:", req.body);
+//       console.log("User:", req.user);
+      
+//       const { name, thumbnail, track } = req.body;
+      
+//       if (!name || !thumbnail || !track) {
+//         return res
+//           .status(400)
+//           .json({ err: "Insufficient details to create song." });
+//       }
+      
+//       const artist = req.user._id;
+//       const songDetails = { name, thumbnail, track, artist };
+      
+//       console.log("Creating song with details:", songDetails);
+//       const createdSong = await Song.create(songDetails);
+//       console.log("Song created successfully:", createdSong);
+      
+//       return res.status(200).json(createdSong);
+//     } catch (error) {
+//       console.error("Error creating song:", error);
+//       return res.status(500).json({ err: "Failed to create song", details: error.message });
+//     }
+//   }
+// );
+
 router.post(
   "/create",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     try {
-      console.log("Request body:", req.body);
-      console.log("User:", req.user);
-      
+      if (!req.user) {
+        return res.status(401).json({ err: "Unauthorized. User not found." });
+      }
+
       const { name, thumbnail, track } = req.body;
-      
+
       if (!name || !thumbnail || !track) {
         return res
           .status(400)
           .json({ err: "Insufficient details to create song." });
       }
-      
+
       const artist = req.user._id;
       const songDetails = { name, thumbnail, track, artist };
-      
-      console.log("Creating song with details:", songDetails);
+
       const createdSong = await Song.create(songDetails);
-      console.log("Song created successfully:", createdSong);
-      
       return res.status(200).json(createdSong);
     } catch (error) {
       console.error("Error creating song:", error);
@@ -34,6 +63,7 @@ router.post(
     }
   }
 );
+
 
 // Get route to get all songs I have published.
 router.get(

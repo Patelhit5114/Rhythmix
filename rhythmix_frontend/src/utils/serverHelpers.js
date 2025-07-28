@@ -31,41 +31,56 @@ export const makeUnauthenticatedPOSTRequest = async (route, body) => {
 // };
 
 // OLD CODE FOR POST
-export const makeAuthenticatedPOSTRequest = async (route, body) => {
-  const token = getToken();
+// export const makeAuthenticatedPOSTRequest = async (route, body) => {
+//   const token = getToken();
   
+//   try {
+//     const response = await fetch(backendUrl + route, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${token}`,
+//       },
+//       body: JSON.stringify(body),
+//     });
+    
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+    
+//     const formattedResponse = await response.json();
+//     return formattedResponse;
+//   } catch (error) {
+//     console.error("Request failed:", error);
+//     return { err: "Network error or invalid response" };
+//   }
+// };
+
+export const makeAuthenticatedPOSTRequest = async (route, body) => {
   try {
-    const response = await fetch(backendUrl + route, {
+    const res = await fetch("http://localhost:8080" + route, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: "Bearer " + localStorage.getItem("token"),
       },
       body: JSON.stringify(body),
     });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+
+    const text = await res.text();
+
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      console.error("Server returned non-JSON response:", text);
+      return { err: "Invalid server response", raw: text };
     }
-    
-    const formattedResponse = await response.json();
-    return formattedResponse;
   } catch (error) {
     console.error("Request failed:", error);
-    return { err: "Network error or invalid response" };
+    return { err: "Network error", details: error.message };
   }
 };
 
-// export const makeAuthenticatedGETRequest = async (route) => {
-//   const token = localStorage.getItem("token");
-//   const response = await fetch(BASE_URL + route, {
-//     method: "GET",
-//     headers: {
-//       Authorization: "Bearer " + token,
-//     },
-//   });
-//   return response.json();
-// };
 // OLD CODE FOR GET
 export const makeAuthenticatedGETRequest = async (route) => {
   const token = getToken();

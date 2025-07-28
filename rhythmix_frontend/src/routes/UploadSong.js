@@ -23,23 +23,58 @@ const UploadSong = ({ curActiveScreen }) => {
 
   const submitSong = async () => {
     console.log("Submitting song with data:", { name, thumbnail, track: playlistUrl });
-    
+
     if (!name || !thumbnail || !playlistUrl) {
       alert("Please fill all fields and upload a track");
       return;
     }
-    
+
+    const token = localStorage.getItem("token");
+    console.log("Token from localStorage:", token); // Debug log
+
+    if (!token) {
+      alert("Please login first");
+      navigate("/login");
+      return;
+    }
+
     try {
       const data = { name, thumbnail, track: playlistUrl };
-      const response = await makeAuthenticatedPOSTRequest("/song/create", data);
-      
-      console.log("Response:", response);
-      
+      const rawResponse = await fetch("http://localhost:8080/song/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(data),
+      });
+
+      console.log("Response status:", rawResponse.status); // Debug log
+
+      if (rawResponse.status === 401) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        navigate("/login");
+        return;
+      }
+
+      const text = await rawResponse.text();
+      console.log("Raw response text:", text); // Debug log
+
+      let response;
+      try {
+        response = JSON.parse(text);
+      } catch (err) {
+        console.error("Invalid JSON returned from server:", text);
+        alert("Server error. Try again.");
+        return;
+      }
+
       if (response.err) {
         alert("Could not create song: " + response.err);
         return;
       }
-      
+
       alert("Success! Song uploaded");
       navigate("/home");
     } catch (error) {
@@ -47,6 +82,7 @@ const UploadSong = ({ curActiveScreen }) => {
       alert("Error uploading song");
     }
   };
+
   return (
     <div className="h-full w-full flex">
       {/* {this div will be the left panel} */}

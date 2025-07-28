@@ -40,25 +40,27 @@ mongoose.connect(
   });
 
 // setup passport-jwt
-let opts = {};
+const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = "thisKeyIsSupposedToBeSecret";
+opts.secretOrKey = "thisKeyIsSupposedToBeSecret"; // Make sure this matches your token generation
+
 passport.use(
-  new JwtStrategy(opts, function (jwt_payload, done) {
-    User.findOne({ _id: jwt_payload.identifier }, function (err, user) {
-      // done(error, doesTheUserExist)
-      if (err) {
-        return done(err, false);
-      }
+  new JwtStrategy(opts, async function (jwt_payload, done) {
+    try {
+      console.log("JWT payload:", jwt_payload); // Debug log
+      const user = await User.findOne({ _id: jwt_payload.identifier });
       if (user) {
         return done(null, user);
       } else {
         return done(null, false);
-        // or you could create a new account
       }
-    });
+    } catch (err) {
+      console.error("JWT Strategy error:", err);
+      return done(err, false);
+    }
   })
 );
+
 
 // API : GET type : / : return text "Hello world"
 app.get("/", (req, res) => {
