@@ -1,6 +1,6 @@
 // in the route folder all /,/login,/signup,etc. all components are defined.
 //create a login component
-import icon from "../images/logo_transparent.png";
+import icon from "../images/logo_login.png";
 import TextInput from "../components/shared/Textinput";
 import Passwordinput from "../components/shared/Passwordinput";
 import { Link, useNavigate } from "react-router-dom";
