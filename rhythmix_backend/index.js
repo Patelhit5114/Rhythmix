@@ -11,7 +11,8 @@ const User = require("./models/User");
 const authRoutes = require("./routes/auth");
 const songRoutes = require("./routes/song");
 const playlistRoutes = require("./routes/playlist");
-// require("dotenv").config();
+const externalRoutes = require("./routes/external");
+require("dotenv").config();
 const cors = require("cors");
 const app = express();
 const port = 8080;
@@ -26,7 +27,7 @@ app.use(express.json());
 // connect mongodb to our node app.
 // mongoose.connect() takes 2 arguments : 1. Which db to connect to (db url), 2. 2. Connection options
 mongoose.connect(
-    "mongodb+srv://hitpatel5114:vGeO5ZoPBpt9kZw8@cluster0.wov13bn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    process.env.MONGODB_URI || "mongodb+srv://hitpatel5114:vGeO5ZoPBpt9kZw8@cluster0.wov13bn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -42,7 +43,7 @@ mongoose.connect(
 // setup passport-jwt
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = "thisKeyIsSupposedToBeSecret"; // Make sure this matches your token generation
+opts.secretOrKey = process.env.JWT_SECRET || "thisKeyIsSupposedToBeSecret"; // Make sure this matches your token generation
 
 passport.use(
   new JwtStrategy(opts, async function (jwt_payload, done) {
@@ -71,6 +72,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/song", songRoutes);
 app.use("/playlist", playlistRoutes);
+app.use("/external", externalRoutes);
 
 // Now we want to tell express that our server will run on localhost:8000
 app.listen(port, () => {
