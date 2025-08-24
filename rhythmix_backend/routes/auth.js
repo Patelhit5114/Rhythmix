@@ -4,6 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const {getToken} = require("../utils/helpers");
 const passport = require("passport");
+const { createDemoSongsForUser } = require("./song");
 
 // Logout route - clear token from client side
 router.post("/logout", 
@@ -53,6 +54,13 @@ router.post("/register", async (req, res) => {
     };
     const newUser = await User.create(newUserData);
     console.log(newUserData);
+
+    // Automatically create demo songs for this new user
+    try {
+      await createDemoSongsForUser(newUser._id);
+    } catch (err) {
+      console.error("Failed to create demo songs for new user:", err);
+    }
 
     // Step 4: We want to create the token to return to the user
     const token = await getToken(email, newUser);

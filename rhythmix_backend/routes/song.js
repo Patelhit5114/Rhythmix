@@ -50,13 +50,29 @@ router.post(
 
 
 // Get route to get all songs I have published.
+// router.get(
+//   "/get/mysongs",
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     // We need to get all songs where artist id == currentUser._id
+//     const songs = await Song.find({ artist: req.user._id }).populate("artist");
+//     return res.status(200).json({ data: songs });
+//   }
+// );
+
 router.get(
   "/get/mysongs",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
-    // We need to get all songs where artist id == currentUser._id
-    const songs = await Song.find({ artist: req.user._id }).populate("artist");
-    return res.status(200).json({ data: songs });
+    // Get all songs uploaded by the user
+    const userSongs = await Song.find({ artist: req.user._id }).populate("artist");
+    // Get all demo songs
+    const demoSongs = await Song.find({ isDemo: true }).populate("artist");
+
+    // Combine both arrays
+    const allSongs = [...userSongs, ...demoSongs];
+
+    return res.status(200).json({ data: allSongs });
   }
 );
 
@@ -95,68 +111,70 @@ router.get(
   }
 );
 
-// Demo data for college presentation
+// Helper to create demo songs for a user
+async function createDemoSongsForUser(userId) {
+  const demoSongs = [
+    {
+      name: "Bohemian Rhapsody",
+      thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    {
+      name: "Shape of You",
+      thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    },
+    {
+      name: "Blinding Lights",
+      thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    },
+    {
+      name: "Watermelon Sugar",
+      thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    },
+    {
+      name: "Bad Guy",
+      thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+    },
+    {
+      name: "Someone Like You",
+      thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+    },
+    {
+      name: "Levitating",
+      thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+    },
+    {
+      name: "Stay",
+      thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
+      track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+    }
+  ];
+  const createdSongs = [];
+  for (const songData of demoSongs) {
+    const songDetails = {
+      ...songData,
+      artist: userId,
+      isDemo: true
+    };
+    const createdSong = await Song.create(songDetails);
+    createdSongs.push(createdSong);
+  }
+  return createdSongs;
+}
+
+// (Optional) Keep the manual demo data route for testing
 router.post(
   "/create-demo-data",
   passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     try {
-      const demoSongs = [
-        {
-          name: "Bohemian Rhapsody",
-          thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-        },
-        {
-          name: "Shape of You",
-          thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-        },
-        {
-          name: "Blinding Lights",
-          thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-        },
-        {
-          name: "Watermelon Sugar",
-          thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
-        },
-        {
-          name: "Bad Guy",
-          thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
-        },
-        {
-          name: "Someone Like You",
-          thumbnail: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
-        },
-        {
-          name: "Levitating",
-          thumbnail: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
-        },
-        {
-          name: "Stay",
-          thumbnail: "https://images.unsplash.com/photo-1571974599782-87624638275c?w=500",
-          track: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
-        }
-      ];
-
-      const artist = req.user._id;
-      const createdSongs = [];
-
-      for (const songData of demoSongs) {
-        const songDetails = { 
-          ...songData, 
-          artist,
-          isDemo: true  // Add this flag
-        };
-        const createdSong = await Song.create(songDetails);
-        createdSongs.push(createdSong);
-      }
-
+      const createdSongs = await createDemoSongsForUser(req.user._id);
       return res.status(200).json({
         message: `Demo ready! Created ${createdSongs.length} popular songs`,
         songs: createdSongs
